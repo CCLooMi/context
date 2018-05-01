@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="vis/vis-network.min.css">
+    <link rel="stylesheet" href="style/net.css">
+    <script src="js/jquery.min.js"></script>
+    <script src="js/sweetalert.min.js"></script>
+    <script src="vis/vis-network.min.js"></script>
+    <script src="js/context.js"></script>
+</head>
+<body>
+<network id="net-1"></network>
+
+
+<script>
+    var context=new CCContext({
+        container:$('#net-1')
+    });
+    $(document).keydown(function (e) {
+        keyPress({altKey:e.originalEvent.altKey,
+            shiftKey:e.originalEvent.shiftKey,
+            ctrlKey:e.originalEvent.shiftKey,
+            code:e.originalEvent.code,
+            repeat:e.originalEvent.repeat,
+            key:e.originalEvent.key,
+            keyCode:e.originalEvent.keyCode
+        },-1);
+    });
+    $(document).keyup(function (e) {
+        keyPress({altKey:e.originalEvent.altKey,
+            shiftKey:e.originalEvent.shiftKey,
+            ctrlKey:e.originalEvent.shiftKey,
+            code:e.originalEvent.code,
+            repeat:e.originalEvent.repeat,
+            key:e.originalEvent.key,
+            keyCode:e.originalEvent.keyCode
+        },1);
+    });
+    var keyPress = function (e,d) {
+        if(!e.repeat){
+            window.e=e;
+            if(d<0){
+                if(network&&e.keyCode==16){
+                    network.addEdgeMode();
+                }
+            }else{
+                if(network&&e.keyCode==16){
+                    network.disableEditMode();
+                }
+            }
+        }
+    }
+    var action=function(data,callback) {
+        callback(data);
+        if(window.e.shiftKey){
+            network.addEdgeMode();
+        }
+    }
+    var container = $("#net-1")[0];
+    var data ={
+        nodes:[],
+        edges:[]
+    };
+    var options={
+        manipulation: {
+            enabled: false,
+            addNode: action,
+            addEdge: action,
+            editNode: action,
+            editEdge: action,
+            deleteNode: action,
+            deleteEdge: action
+        }
+    };
+    var network=new vis.Network(container,data,options);
+    var nodes=new vis.DataSet([{id:'a',label:'Seemie'},{id:'b',label:'Smith'}]);
+    var edges=new vis.DataSet([{from:'a',to:'b'}]);
+    network.setData({nodes:nodes,edges:edges});
+    network.redraw();
+
+    network.on('oncontext', function (params) {
+        var nodeid=network.getNodeAt(params.pointer.DOM)||'NULL';
+        var selectNode=nodes._data[nodeid];
+        context.showMenu(params.event,
+            {'hello':function () {
+                swal("Select Node is",selectNode&&selectNode.label||'');
+            },
+                '编辑':["注册","修改","删除"],
+                "搜索":function () {
+
+                }});
+    });
+</script>
+</body>
+</html>

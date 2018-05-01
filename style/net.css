@@ -1,0 +1,79 @@
+html body {
+  padding: 0;
+  margin: 0;
+  height: 100%;
+}
+network {
+  display: flex;
+  background-color: aliceblue;
+  border: 1px solid #dddddd;
+  position: absolute;
+  overflow: hidden;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: 0;
+}
+context-menu {
+  position: absolute;
+  display: flex;
+}
+context-menu,
+context-menu sub-menu {
+  flex-direction: column;
+  padding: 5px 0;
+  border-radius: 5px;
+  background-color: white;
+  color: black;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+}
+context-menu > menu-item,
+context-menu sub-menu > menu-item {
+  min-width: 106px;
+}
+context-menu > menu-item:hover,
+context-menu sub-menu > menu-item:hover {
+  background-color: deepskyblue;
+  color: white;
+}
+context-menu > menu-item:hover sub-menu,
+context-menu sub-menu > menu-item:hover sub-menu {
+  display: flex;
+}
+context-menu > menu-item:not(:last-child),
+context-menu sub-menu > menu-item:not(:last-child) {
+  border-bottom: 1px solid #dddddd;
+}
+context-menu sub-menu {
+  display: none;
+  position: absolute;
+}
+context-menu sub-menu[direction='right'] {
+  left: 100%;
+}
+context-menu sub-menu[direction='left'] {
+  right: 100%;
+}
+context-menu menu-item {
+  padding: 5px 10px;
+  cursor: pointer;
+  display: flex;
+  flex: 1 1 auto;
+}
+context-menu menu-item[direction='reverse'] {
+  flex-direction: column-reverse;
+}
+context-menu menu-item[direction='reverse'] > sub-menu {
+  margin-bottom: -11px;
+}
+context-menu menu-item[direction='normal'] > sub-menu {
+  margin-top: -11px;
+}
+context-menu menu-item > menu-item {
+  padding: 0;
+}
+context-menu menu-item > menu-item:after {
+  content: "▶";
+  position: absolute;
+  right: 10px;
+}
