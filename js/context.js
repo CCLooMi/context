@@ -70,7 +70,9 @@
         click:function(e){
             var target=$(e.target);
             if(!target.is('context-menu,context-menu *')){
-                this.template.remove();
+                if(this.template){
+                    this.template.remove();
+                }
             }else if(target.is('menu-item[action]')){
                 var action=this.actions[target.attr('action')];
                 this.template.remove();
