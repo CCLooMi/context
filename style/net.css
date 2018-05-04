@@ -61,10 +61,10 @@ context-menu menu-item[direction='reverse'] {
   flex-direction: column-reverse;
 }
 context-menu menu-item[direction='reverse'] > sub-menu {
-  margin-bottom: -11px;
+  margin-bottom: -10px;
 }
 context-menu menu-item[direction='normal'] > sub-menu {
-  margin-top: -11px;
+  margin-top: -10px;
 }
 context-menu menu-item > menu-item {
   padding: 0;
