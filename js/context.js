@@ -4,6 +4,7 @@
     function CCContext(option) {
         that=this;
         this.container=option.container||$('body');
+        this.container.css({position:'relative',display:'flex'});
         this.attachEvent(this.container);
     };
     function clonePropertiesFrom(o,ps){
