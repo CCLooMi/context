@@ -66,16 +66,17 @@
                 click:$.proxy(this.click,this),
                 mouseover:$.proxy(this.hover,this)
             });
+            $(document).on({
+                click:$.proxy(this.click,this)
+            });
         },
         click:function(e){
             var target=$(e.target);
             if(!target.is('context-menu,context-menu *')){
-                if(this.template){
-                    this.template.remove();
-                }
+                this.clearMenu();
             }else if(target.is('menu-item[action]')){
                 var action=this.actions[target.attr('action')];
-                this.template.remove();
+                this.clearMenu();
                 action&&action();
             }
         },
@@ -113,9 +114,12 @@
                 //     .attr('direction','normal');
             }
         },
+        clearMenu:function(){
+            this.template&&this.template.remove();
+        },
         showMenu:function(e,menu){
             this.actions={};
-            this.template&&this.template.remove();
+            this.clearMenu();
             this.oe=e2oe(e);
             this.template=$(this.createMenu(menu));
             this.container.append(this.template);
