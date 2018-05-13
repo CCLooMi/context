@@ -4,8 +4,10 @@
     function CCContext(option) {
         that=this;
         this.container=option.container||$('body');
-        this.container.css({position:'relative',display:'flex'});
-        this.attachEvent(this.container);
+        this.container.css({position:'relative'});
+        this.template=$('<context-menu></context-menu>');
+        this.attachEvent();
+        this.container.append(this.template);
     };
     function clonePropertiesFrom(o,ps){
         var co={};
@@ -60,10 +62,8 @@
         return uuid.join('');
     }
     CCContext.prototype={
-        attachEvent:function (container) {
-            container.on({
-                contextmenu:$.proxy(this.contextmenu,this),
-                click:$.proxy(this.click,this),
+        attachEvent:function () {
+            this.template.on({
                 mouseover:$.proxy(this.hover,this)
             });
             $(document).on({
@@ -71,13 +71,15 @@
             });
         },
         click:function(e){
-            var target=$(e.target);
-            if(!target.is('context-menu,context-menu *')){
-                this.clearMenu();
-            }else if(target.is('menu-item[action]')){
-                var action=this.actions[target.attr('action')];
-                this.clearMenu();
-                action&&action();
+            if(e.originalEvent.which==1){
+                var target=$(e.target);
+                if(!target.is('context-menu,context-menu *')){
+                    this.clearMenu();
+                }else if(target.is('menu-item[action]')){
+                    var action=this.actions[target.attr('action')];
+                    this.clearMenu();
+                    action&&action();
+                }
             }
         },
         hover:function(e){
@@ -95,34 +97,15 @@
                 }
             }
         },
-        contextmenu:function (e) {
-            e.preventDefault();
-            var target=$(e.target);
-            if(!target.is('context-menu,context-menu *')){
-                // this.oe=e2oe(e);
-                // this.container.append(this.template);
-                // var ep=elementPosition(this.template);
-                // var de=deRect(this.container);
-                //
-                // var left=(oe.layerX+ep.offsetWidth)>de.offsetWidth?(de.offsetWidth-ep.offsetWidth-1):oe.layerX;
-                // var top=(oe.layerY+ep.offsetHeight)>de.offsetHeight?(oe.layerY-ep.offsetHeight):oe.layerY;
-                // this.template.css({'left':left,'top':top});
-                // this.template.find('sub-menu')
-                //     .attr('direction','right');
-                // this.template.find('sub-menu')
-                //     .parent('menu-item')
-                //     .attr('direction','normal');
-            }
-        },
         clearMenu:function(){
-            this.template&&this.template.remove();
+            this.template&&this.template.hide();
         },
         showMenu:function(e,menu){
+            e.preventDefault();
+            e.stopPropagation();
             this.actions={};
-            this.clearMenu();
             this.oe=e2oe(e);
-            this.template=$(this.createMenu(menu));
-            this.container.append(this.template);
+            this.template.html(this.menuHtml(menu)).show();
             var ep=elementPosition(this.template);
             var de=deRect(this.container);
             var left=(this.oe.layerX+ep.offsetWidth)>de.offsetWidth?
@@ -135,9 +118,6 @@
             this.template.find('sub-menu')
                 .parent('menu-item')
                 .attr('direction','normal');
-        },
-        createMenu:function (menu) {
-            return '<context-menu>'+this.menuHtml(menu)+'</context-menu>';
         },
         createSubMenu:function (menu) {
             return '<sub-menu>'+this.menuHtml(menu)+ '</sub-menu>';
