@@ -33,31 +33,6 @@
             'offsetWidth','offsetHeight'
         ]);
     }
-    function uuid(len, radix) {
-        var chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
-            .split('');
-        var uuid = [], i;
-        radix = radix || chars.length;
-        if (len) {
-            // Compact form
-            for (i = 0; i < len; i++) uuid[i] = chars[0 | Math.random()*radix];
-        } else {
-            // rfc4122, version 4 form
-            var r;
-            // rfc4122 requires these characters
-            uuid[8] = uuid[13] = uuid[18] = uuid[23] = '-';
-            uuid[14] = '4';
-            // Fill in random data.  At i==19 set the high bits of clock sequence as
-            // per rfc4122, sec. 4.1.5
-            for (i = 0; i < 36; i++) {
-                if (!uuid[i]) {
-                    r = 0 | Math.random()*16;
-                    uuid[i] = chars[(i == 19) ? (r & 0x3) | 0x8 : r];
-                }
-            }
-        }
-        return uuid.join('');
-    }
     function getMaxZIndex() {
         var mz=-1;
         var a=document.querySelectorAll('body *');
@@ -68,6 +43,17 @@
             }
         }
         return mz;
+    }
+    function cDom(name,c,a){
+        var d=document.createElement(name);
+        c&&(d.innerHTML=c);
+        a&&(d.action=a);
+        return d;
+    }
+    function ccDom(name,...cs){
+        var d=document.createElement(name);
+        d.append.apply(d,cs);
+        return d;
     }
     CCContext.prototype={
         attachEvent:function () {
@@ -80,14 +66,7 @@
         },
         click:function(e){
             if(e.originalEvent.which==1){
-                var target=$(e.target);
-                if(!target.is('context-menu,context-menu *')){
-                    this.clearMenu();
-                }else if(target.is('menu-item[action]')){
-                    var action=this.actions[target.attr('action')];
-                    this.clearMenu();
-                    action&&action();
-                }
+                (e.target.action||(()=>0))(e),this.clearMenu();
             }
         },
         hover:function(e){
@@ -112,9 +91,10 @@
         showMenu:function(e,menu){
             e.preventDefault();
             e.stopPropagation();
-            this.actions={};
             this.oe=e2oe(e);
-            this.template.html(this.menuHtml(menu)).show();
+            // this.template.html(this.menuHtml(menu)).show();
+            this.template.html('');
+            this.template.append(this.domMenu(menu)).show();
 
             var dt=deRect(this.template);
             var cp=elementPosition(this.container);
@@ -135,29 +115,21 @@
                 .parent('menu-item')
                 .attr('direction','normal');
         },
-        createSubMenu:function (menu) {
-            return '<sub-menu>'+this.menuHtml(menu)+ '</sub-menu>';
+        subMenu:function (menu) {
+            return ccDom('sub-menu',this.domMenu(menu));
         },
-        menuHtml:function (menu) {
-            var mn='';
-            for(var p in menu){
-                var v=menu[p];
+        domMenu:function (menu) {
+            var mn,p,v,subM;
+            for(p in menu){
+                v=menu[p];
                 if(v instanceof Array){
-                    mn+='<menu-item>' +
-                        '<menu-item>'+p+'</menu-item><sub-menu>';
-                    for(var i=0;i<v.length;i++){
-                        mn+='<menu-item>'+v[i]+'</menu-item>';
-                    }
-                    mn+='</sub-menu></menu-item>';
+                    subM=cDom('sub-menu');
+                    subM.append.apply(subM,v.map(i=>cDom('menu-item',i)));
+                    mn=ccDom('menu-item',cDom('menu-item',p),subM);
                 }else if(typeof v=='function'){
-                    var actionid=uuid(32);
-                    mn+='<menu-item action="'+actionid+'">' +p+ '</menu-item>';
-                    this.actions[actionid]=v;
+                    mn=cDom('menu-item',p,v);
                 }else {
-                    mn+='<menu-item>' +
-                        '<menu-item>'+p+'</menu-item>'+
-                        this.createSubMenu(v)+
-                        '</menu-item>';
+                    mn=ccDom('menu-item',cDom('menu-item',p),this.subMenu(v));
                 }
             }
             return mn;
