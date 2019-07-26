@@ -46,13 +46,19 @@
     }
     function cDom(name,c,a){
         var d=document.createElement(name);
-        c&&(d.innerHTML=c);
+        typeof c=='string'?d.innerHTML=c:d.appendChild(c);
         a&&(d.action=a);
         return d;
     }
     function ccDom(name,...cs){
         var d=document.createElement(name);
-        d.append.apply(d,cs);
+        cs.forEach(i=>{
+            if(i instanceof Array){
+                i.forEach(ii=>d.appendChild(ii));
+            }else{
+                d.appendChild(i);
+            }
+        });
         return d;
     }
     CCContext.prototype={
@@ -128,12 +134,12 @@
                 v=menu[p];
                 if(v instanceof Array){
                     subM=cDom('sub-menu');
-                    subM.append.apply(subM,v.map(i=>cDom('menu-item',i)));
+                    v.forEach(i=>subM.appendChild(cDom('menu-item',i)));
                     mn.push(ccDom('menu-item',cDom('menu-item',p),subM));
                 }else if(typeof v=='function'){
-                    mn.push(cDom('menu-item',p,v));
+                    mn.push(cDom('menu-item',cDom('span',p,v),v));
                 }else {
-                    mn.push(ccDom('menu-item',cDom('menu-item',p),this.subMenu(v)));
+                    mn.push(ccDom('menu-item',cDom('menu-item',cDom('span',p)),this.subMenu(v)));
                 }
             }
             return mn;
