@@ -60,7 +60,7 @@
             this.template.on({
                 mouseover:$.proxy(this.hover,this)
             });
-            $(document).on({
+            this.container.on({
                 click:$.proxy(this.click,this)
             });
         },
@@ -88,11 +88,15 @@
         clearMenu:function(){
             this.template&&this.template.hide();
         },
+        destroy:function(){
+            this.template.unbind('mouseover');
+            this.container.unbind('click');
+            this.template.remove();
+        },
         showMenu:function(e,menu){
             e.preventDefault();
             e.stopPropagation();
             this.oe=e2oe(e);
-            // this.template.html(this.menuHtml(menu)).show();
             this.template.html('');
             this.template.append(this.domMenu(menu)).show();
 
@@ -119,17 +123,17 @@
             return ccDom('sub-menu',this.domMenu(menu));
         },
         domMenu:function (menu) {
-            var mn,p,v,subM;
+            var mn=[],p,v,subM;
             for(p in menu){
                 v=menu[p];
                 if(v instanceof Array){
                     subM=cDom('sub-menu');
                     subM.append.apply(subM,v.map(i=>cDom('menu-item',i)));
-                    mn=ccDom('menu-item',cDom('menu-item',p),subM);
+                    mn.push(ccDom('menu-item',cDom('menu-item',p),subM));
                 }else if(typeof v=='function'){
-                    mn=cDom('menu-item',p,v);
+                    mn.push(cDom('menu-item',p,v));
                 }else {
-                    mn=ccDom('menu-item',cDom('menu-item',p),this.subMenu(v));
+                    mn.push(ccDom('menu-item',cDom('menu-item',p),this.subMenu(v)));
                 }
             }
             return mn;
