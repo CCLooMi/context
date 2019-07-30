@@ -46,7 +46,7 @@
     }
     function cDom(name,c,a){
         var d=document.createElement(name);
-        typeof c=='string'?d.innerHTML=c:d.appendChild(c);
+        c&&(typeof c=='string'?d.innerHTML=c:d.appendChild(c));
         a&&(d.action=a);
         return d;
     }
