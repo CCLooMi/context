@@ -183,9 +183,7 @@
             });
         },
         click:function(e){
-            if(e.originalEvent.which==1){
-                (e.target.action||(()=>0))(e),this.clearMenu();
-            }
+            (e.target.action||(()=>0))(e),this.clearMenu();
         },
         hover:function(e){
             var target=$(e.target);
@@ -274,14 +272,13 @@
             if(target[0].nodeName=='LABEL'&&target.is('menu-group>menu-item>label')){
                 //label包裹的input会触发两次点击事件
                 let pmi=target.parents('menu-group>menu-item');
-                let pmg=target.parents('menu-group');
                 if(!pmi.hasClass(active)){
                     ats.removeClass(active);
-                    pmg.addClass(active);
+                    this.container.addClass(active);
                     pmi.addClass(active);
                 }else{
                     ats.removeClass(active);
-                    pmg.removeClass(active);
+                    this.container.removeClass(active);
                     pmi.removeClass(active);
                 }
                 return;
@@ -290,7 +287,6 @@
             this.container.removeClass(active);
 
             target[0].nodeName=='LABEL'&&
-            e.originalEvent.which==1&&
             (e.target.action||(()=>0))(e);
         },
         hover:function(e){
@@ -316,6 +312,13 @@
                     target.addClass(active);
                 }
             }
+        },
+        clearMenu:function(){
+            this.container
+                .find('.'+active)
+                .removeClass(active);
+            this.container
+                .removeClass(active);
         },
         clearAction:function(){
             this.container
