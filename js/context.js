@@ -41,11 +41,11 @@
         var d=document.createElement(name);
         cs.forEach(i=>{
             if(i instanceof Array){
-            i.forEach(ii=>d.appendChild(ii));
-        }else{
-            d.appendChild(i);
-        }
-    });
+                i.forEach(ii=>d.appendChild(ii));
+            }else{
+                d.appendChild(i);
+            }
+        });
         return d;
     }
     function radioOrCheckbox(o) {
@@ -212,9 +212,9 @@
             this.template
                 .find(label)
                 .each((i,b)=>{
-                b.action=undefined;
-            delete b.action;
-        });
+                    b.action=undefined;
+                    delete b.action;
+                });
         },
         destroy:function(){
             //TODO 有待优化，需要移除label绑定的action
@@ -271,20 +271,7 @@
         click:function(e){
             let target=$(e.target);
             let ats=this.container.find('.'+active);
-            if(target.is('menu-group>menu-item')){
-                let pmg=target.parents('menu-group');
-                if(!target.hasClass(active)){
-                    ats.removeClass(active);
-                    pmg.addClass(active);
-                    target.addClass(active);
-                }else{
-                    ats.removeClass(active);
-                    pmg.removeClass(active);
-                    target.removeClass(active);
-                }
-                return;
-            }
-            if(target.is('menu-group>menu-item>label')){
+            if(target[0].nodeName=='LABEL'&&target.is('menu-group>menu-item>label')){
                 //label包裹的input会触发两次点击事件
                 let pmi=target.parents('menu-group>menu-item');
                 let pmg=target.parents('menu-group');
@@ -300,7 +287,11 @@
                 return;
             }
             ats.removeClass(active);
-            e.originalEvent.which==1&&(e.target.action||(()=>0))(e);
+            this.container.removeClass(active);
+
+            target[0].nodeName=='LABEL'&&
+            e.originalEvent.which==1&&
+            (e.target.action||(()=>0))(e);
         },
         hover:function(e){
             var target=$(e.target);
@@ -330,9 +321,9 @@
             this.container
                 .find(label)
                 .each((i,b)=>{
-                b.action=undefined;
-            delete b.action;
-        });
+                    b.action=undefined;
+                    delete b.action;
+                });
         },
         destroy:function(){
             this.container.unbind('mouseover');
