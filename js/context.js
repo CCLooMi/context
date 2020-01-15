@@ -25,7 +25,7 @@
     }
     var itemName='menu-item', label='label', span='span',
         input='input', sub_menu='sub-menu', ui_sref='ui-sref',
-        app_sref='app-sref', divider='divider';
+        app_sref='app-sref', divider='divider',active='active';
     function randomName() {
         return Math.random()
             .toString(32)
@@ -41,11 +41,11 @@
         var d=document.createElement(name);
         cs.forEach(i=>{
             if(i instanceof Array){
-                i.forEach(ii=>d.appendChild(ii));
-            }else{
-                d.appendChild(i);
-            }
-        });
+            i.forEach(ii=>d.appendChild(ii));
+        }else{
+            d.appendChild(i);
+        }
+    });
         return d;
     }
     function radioOrCheckbox(o) {
@@ -189,7 +189,7 @@
         },
         hover:function(e){
             var target=$(e.target);
-            if(target.is('menu-item>label')){
+            if(target[0].nodeName=='LABEL'&&target.is('menu-item>label')){
                 target=target.parents('menu-item');
                 var submenu=target.find('sub-menu');
                 if(!submenu.length){return;}
@@ -206,12 +206,21 @@
             }
         },
         clearMenu:function(){
-            this.template&&this.template.hide();
+            this.template.hide();
+        },
+        clearAction:function(){
+            this.template
+                .find(label)
+                .each((i,b)=>{
+                b.action=undefined;
+            delete b.action;
+        });
         },
         destroy:function(){
             //TODO 有待优化，需要移除label绑定的action
             this.template.unbind('mouseover');
             this.container.unbind('click');
+            this.clearAction();
             this.template.remove();
         },
         showMenu:function(e,menu){
@@ -221,6 +230,7 @@
                 this.container.append(this.template);
             }
             this.oe=e2oe(e);
+            this.clearAction();
             this.template.html('');
             this.template.append(contextMenu(menu)).show();
 
@@ -259,13 +269,44 @@
             });
         },
         click:function(e){
+            let target=$(e.target);
+            let ats=this.container.find('.'+active);
+            if(target.is('menu-group>menu-item')){
+                let pmg=target.parents('menu-group');
+                if(!target.hasClass(active)){
+                    ats.removeClass(active);
+                    pmg.addClass(active);
+                    target.addClass(active);
+                }else{
+                    ats.removeClass(active);
+                    pmg.removeClass(active);
+                    target.removeClass(active);
+                }
+                return;
+            }
+            if(target.is('menu-group>menu-item>label')){
+                //label包裹的input会触发两次点击事件
+                let pmi=target.parents('menu-group>menu-item');
+                let pmg=target.parents('menu-group');
+                if(!pmi.hasClass(active)){
+                    ats.removeClass(active);
+                    pmg.addClass(active);
+                    pmi.addClass(active);
+                }else{
+                    ats.removeClass(active);
+                    pmg.removeClass(active);
+                    pmi.removeClass(active);
+                }
+                return;
+            }
+            ats.removeClass(active);
             e.originalEvent.which==1&&(e.target.action||(()=>0))(e);
         },
         hover:function(e){
             var target=$(e.target);
-            if(target.is('menu-item>label')){
+            if(target[0].nodeName=='LABEL'&&target.is('menu-item>label')){
                 target=target.parents('menu-item');
-                var submenu=target.find('sub-menu');
+                var submenu=target.find('dropdown-menu,sub-menu');
                 if(!submenu.length){return;}
                 var dc=deRect(this.container);
                 var cp=elementPosition(this.container);
@@ -277,17 +318,29 @@
                 if((dSub.offsetHeight+(subP.top-cp.top))>dc.offsetHeight){
                     submenu.parent('menu-item').attr('direction','reverse');
                 }
+
+                let ats=this.container.find('menu-item.'+active);
+                if(target.is('menu-group.'+active+'>menu-item')){
+                    ats.removeClass(active);
+                    target.addClass(active);
+                }
             }
         },
-        clearMenu:function(){
-            this.container&&this.container.hide();
+        clearAction:function(){
+            this.container
+                .find(label)
+                .each((i,b)=>{
+                b.action=undefined;
+            delete b.action;
+        });
         },
         destroy:function(){
             this.container.unbind('mouseover');
             this.container.unbind('click');
-            this.template.remove();
+            this.clearAction();
         },
         showMenu:function(menu){
+            this.clearAction();
             this.container.html('');
             this.container.append(menubarMenu(menu)).show();
 
