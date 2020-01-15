@@ -1,5 +1,17 @@
+@theme-color:#ff6600;
+@theme-color-2:#424f6b;
+@main-border-color:lighten(@theme-color-2,30%);
 @box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
-html body {
+.no-select() {
+  user-select: none;//文字不可选
+  -webkit-user-select:none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+.box-shadow(){
+  box-shadow: @box-shadow;
+}
+html,body {
   padding: 0;
   margin: 0;
   width: 100%;
@@ -11,11 +23,110 @@ network {
   border: 1px solid #dddddd;
   overflow: hidden;
   height: 100%;
+  display: flex;
 }
 
-context-menu {
+[dropdown]{
+  position: relative;
+  &[dropdown='select']{
+    width: 3cm;
+    height: 8mm;
+    display: flex;
+    border: 1px solid @main-border-color;
+    align-items: center;
+    padding: 0 2mm;
+    &:hover{
+      box-shadow: @box-shadow inset;
+    }
+    &:after{
+      content: ">";
+      right: 0;
+      position: absolute;
+      line-height: 8mm;
+      transform: rotate(90deg);
+      width: 8mm;
+      text-align: center;
+    }
+  }
+  &[dropdown='menu']{
+
+  }
+  &.active{
+    &>dropdown-menu,+dropdown-menu{
+      display: flex;
+    }
+  }
+  &>dropdown-menu,+dropdown-menu{
+    display: none;
+    border-radius: 0 0 5px 5px;
+    z-index: 10;
+    top: 100%;
+    label{
+      cursor: pointer;
+    }
+  }
+}
+menu-item{
+  display: flex;
+  label{
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    padding: 0 5px;
+    .no-select();
+    >span{
+      position: relative;
+      display: flex;
+      height: 100%;
+      align-items: center;
+      pointer-events: none;
+      &:before{
+        position: absolute;
+        left: 0;
+        display: flex;
+        align-items: center;
+        height: 100%;
+        color: transparent;
+      }
+    }
+    input{
+      display: none;
+      +span:before{
+        color: transparent;
+      }
+      &[type='radio']{
+        +span:before{
+          content: "●";
+        }
+        &:checked+span:before{
+          color: inherit;
+        }
+      }
+      &[type='checkbox']{
+        +span:before{
+          content: "✔";
+        }
+        &:checked+span:before{
+          color: inherit;
+        }
+      }
+    }
+  }
+  &.active{
+    background-color: @theme-color-2;
+    color: white;
+  }
+}
+context-menu,dropdown-menu {
   position: absolute;
   display: flex;
+  divider {
+    height: 1px;
+    margin: 4px 11px;
+    background-color: rgba(0,0,0,0.40);
+  }
   &,sub-menu {
     flex-direction: column;
     padding: 5px 0;
@@ -32,8 +143,8 @@ context-menu {
           display: flex;
         }
       }
-      &:not(:last-child){
-        border-bottom: 1px solid lighten(@theme-color-2,30%);
+      label>span{
+        padding-left: 16px;
       }
     }
   }
@@ -48,34 +159,29 @@ context-menu {
     }
   }
   menu-item {
-    padding: 5px 10px;
     cursor: pointer;
     display: flex;
     flex: 1 1 auto;
-    span{
-      width: 100%;
-    }
     &[direction='reverse']{
       flex-direction: column-reverse;
       &>sub-menu {
-        margin-bottom: -10px;
+        margin-bottom: -5px;
       }
     }
     &[direction='normal']{
       &>sub-menu{
-        margin-top: -10px;
+        margin-top: -5px;
       }
     }
-    &>menu-item {
-      padding: 0px 5px;
+    label{
+      padding: 0 11px;
       &:after {
-        content: "▶";
+        content: attr(af);
         position: relative;
-        right: -5px;
-        line-height: 1;
-        align-items: center;
-        justify-content: center;
-        display: flex;
+        right: 0;
+        width: 100%;
+        text-align: right;
+        padding-left: 22px;
       }
     }
   }

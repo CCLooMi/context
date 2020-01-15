@@ -1,4 +1,5 @@
-html body {
+html,
+body {
   padding: 0;
   margin: 0;
   width: 100%;
@@ -10,13 +11,113 @@ network {
   border: 1px solid #dddddd;
   overflow: hidden;
   height: 100%;
+  display: flex;
 }
-context-menu {
+[dropdown] {
+  position: relative;
+}
+[dropdown][dropdown='select'] {
+  width: 3cm;
+  height: 8mm;
+  display: flex;
+  border: 1px solid #8d9bb9;
+  align-items: center;
+  padding: 0 2mm;
+}
+[dropdown][dropdown='select']:hover {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24) inset;
+}
+[dropdown][dropdown='select']:after {
+  content: ">";
+  right: 0;
+  position: absolute;
+  line-height: 8mm;
+  transform: rotate(90deg);
+  width: 8mm;
+  text-align: center;
+}
+[dropdown].active > dropdown-menu,
+[dropdown].active + dropdown-menu {
+  display: flex;
+}
+[dropdown] > dropdown-menu,
+[dropdown] + dropdown-menu {
+  display: none;
+  border-radius: 0 0 5px 5px;
+  z-index: 10;
+  top: 100%;
+}
+[dropdown] > dropdown-menu label,
+[dropdown] + dropdown-menu label {
+  cursor: pointer;
+}
+menu-item {
+  display: flex;
+}
+menu-item label {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  padding: 0 5px;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+menu-item label > span {
+  position: relative;
+  display: flex;
+  height: 100%;
+  align-items: center;
+  pointer-events: none;
+}
+menu-item label > span:before {
+  position: absolute;
+  left: 0;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  color: transparent;
+}
+menu-item label input {
+  display: none;
+}
+menu-item label input + span:before {
+  color: transparent;
+}
+menu-item label input[type='radio'] + span:before {
+  content: "●";
+}
+menu-item label input[type='radio']:checked + span:before {
+  color: inherit;
+}
+menu-item label input[type='checkbox'] + span:before {
+  content: "✔";
+}
+menu-item label input[type='checkbox']:checked + span:before {
+  color: inherit;
+}
+menu-item.active {
+  background-color: #424f6b;
+  color: white;
+}
+context-menu,
+dropdown-menu {
   position: absolute;
   display: flex;
 }
+context-menu divider,
+dropdown-menu divider {
+  height: 1px;
+  margin: 4px 11px;
+  background-color: rgba(0, 0, 0, 0.4);
+}
 context-menu,
-context-menu sub-menu {
+dropdown-menu,
+context-menu sub-menu,
+dropdown-menu sub-menu {
   flex-direction: column;
   padding: 5px 0;
   border-radius: 5px;
@@ -25,52 +126,72 @@ context-menu sub-menu {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
 }
 context-menu > menu-item,
-context-menu sub-menu > menu-item {
+dropdown-menu > menu-item,
+context-menu sub-menu > menu-item,
+dropdown-menu sub-menu > menu-item {
   min-width: 106px;
 }
 context-menu > menu-item:hover,
-context-menu sub-menu > menu-item:hover {
-  background-color: deepskyblue;
-  color: white;
+dropdown-menu > menu-item:hover,
+context-menu sub-menu > menu-item:hover,
+dropdown-menu sub-menu > menu-item:hover {
+  background-color: #424f6b;
+  color: #ff6600;
 }
 context-menu > menu-item:hover sub-menu,
-context-menu sub-menu > menu-item:hover sub-menu {
+dropdown-menu > menu-item:hover sub-menu,
+context-menu sub-menu > menu-item:hover sub-menu,
+dropdown-menu sub-menu > menu-item:hover sub-menu {
   display: flex;
 }
-context-menu > menu-item:not(:last-child),
-context-menu sub-menu > menu-item:not(:last-child) {
-  border-bottom: 1px solid #dddddd;
+context-menu > menu-item label > span,
+dropdown-menu > menu-item label > span,
+context-menu sub-menu > menu-item label > span,
+dropdown-menu sub-menu > menu-item label > span {
+  padding-left: 16px;
 }
-context-menu sub-menu {
+context-menu sub-menu,
+dropdown-menu sub-menu {
   display: none;
   position: absolute;
 }
-context-menu sub-menu[direction='right'] {
+context-menu sub-menu[direction='right'],
+dropdown-menu sub-menu[direction='right'] {
   left: 100%;
 }
-context-menu sub-menu[direction='left'] {
+context-menu sub-menu[direction='left'],
+dropdown-menu sub-menu[direction='left'] {
   right: 100%;
 }
-context-menu menu-item {
-  padding: 5px 10px;
+context-menu menu-item,
+dropdown-menu menu-item {
   cursor: pointer;
   display: flex;
   flex: 1 1 auto;
 }
-context-menu menu-item[direction='reverse'] {
+context-menu menu-item[direction='reverse'],
+dropdown-menu menu-item[direction='reverse'] {
   flex-direction: column-reverse;
 }
-context-menu menu-item[direction='reverse'] > sub-menu {
-  margin-bottom: -10px;
+context-menu menu-item[direction='reverse'] > sub-menu,
+dropdown-menu menu-item[direction='reverse'] > sub-menu {
+  margin-bottom: -5px;
 }
-context-menu menu-item[direction='normal'] > sub-menu {
-  margin-top: -10px;
+context-menu menu-item[direction='normal'] > sub-menu,
+dropdown-menu menu-item[direction='normal'] > sub-menu {
+  margin-top: -5px;
 }
-context-menu menu-item > menu-item {
-  padding: 0;
+context-menu menu-item label,
+dropdown-menu menu-item label {
+  padding: 0 11px;
 }
-context-menu menu-item > menu-item:after {
-  content: "▶";
-  position: absolute;
-  right: 10px;
+context-menu menu-item label:after,
+dropdown-menu menu-item label:after {
+  content: attr(af);
+  position: relative;
+  right: 0;
+  width: 100%;
+  text-align: right;
+  padding-left: 22px;
 }
+/*# sourceMappingURL=net.css.map */

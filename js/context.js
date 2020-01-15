@@ -6,7 +6,6 @@
         this.container=option.container||$('body');
         this.container.css({position:'relative'});
         this.template=$('<context-menu></context-menu>');
-        this.template.css({'z-index':getMaxZIndex()});
         this.attachEvent();
         this.container.append(this.template);
     };
@@ -33,16 +32,13 @@
             'offsetWidth','offsetHeight'
         ]);
     }
-    function getMaxZIndex() {
-        var mz=-1;
-        var a=document.querySelectorAll('body *');
-        for(var i=0,zi;i<a.length;i++){
-            zi=window.getComputedStyle(a[i]).zIndex;
-            if('auto'!=zi){
-                mz=Math.max(mz,zi);
-            }
-        }
-        return mz;
+    var itemName='menu-item', label='label', span='span',
+        input='input', sub_menu='sub-menu', ui_sref='ui-sref',
+        app_sref='app-sref', divider='divider';
+    function randomName() {
+        return Math.random()
+            .toString(32)
+            .substring(2);
     }
     function cDom(name,c,a){
         var d=document.createElement(name);
@@ -61,6 +57,123 @@
         });
         return d;
     }
+    function radioOrCheckbox(o) {
+        var mn=[];
+        for(var p in o.values){
+            var inp=cDom(input);
+            inp.type=o.type;
+            inp.value=o.values[p];
+            inp.name=o.name||randomName();
+            inp.style.display='none';
+            if(o.checked){
+                inp.checked=(typeof o.checked=='string')?
+                    (inp.value==o.checked):
+                    (o.checked.indexOf(inp.value)>-1);
+            }
+            var b=cDom(label,inp,o.action);
+            b.appendChild(cDom(span,p));
+            mn.push(cDom(itemName,b));
+        }
+        return mn;
+    }
+    function cLabel(c,a) {
+        return cDom(label,cDom(span,c),a);
+    }
+    //string label
+    function sLabel(c,v) {
+        var b=cLabel(c);
+        //系统路由
+        if('#'==v.charAt(0)){
+            b.setAttribute(ui_sref,v.substring(1));
+        }else if('@'==v.charAt(0)){//app路由
+            b.setAttribute(app_sref,v.substring(1));
+        }
+        return b;
+    }
+    function o2Menu(o,menuType) {
+        var mn=[];
+        var p,v;
+        for(p in o){
+            v=o[p];
+            if(v instanceof Array){
+                mn.push(ccDom(itemName,cLabel(p),ccDom(menuType||sub_menu,a2Menu(v))));
+                continue;
+            }
+            if(typeof v=='function'){
+                mn.push(ccDom(itemName,cLabel(p,v)));
+                continue;
+            }
+            if(typeof v=='string'){
+                mn.push(ccDom(itemName,sLabel(p,v)));
+                continue;
+            }
+            if(typeof v=='object'){
+                if(v.type=='radio'||v.type=='checkbox'){
+                    mn.push(ccDom(itemName,cLabel(p),ccDom(menuType||sub_menu,radioOrCheckbox(v))));
+                    continue;
+                }
+                mn.push(ccDom(itemName,cLabel(p),ccDom(menuType||sub_menu,o2Menu(v))));
+                continue;
+            }
+        }
+        return mn;
+    }
+    function a2Menu(a,menuType) {
+        var mn=[];
+        for(var i=0,v;v=a[i];i++){
+            if(v instanceof Array){
+                i&&mn.push(cDom(divider));
+                mn.push.apply(mn,a2Menu(v,menuType));
+                continue;
+            }
+            if(typeof v=='string'){
+                if('|'!=v.charAt(0)){
+                    if(v.indexOf('#')>0){
+                        v=v.split('#');
+                        var b=cLabel(v[0]);
+                        b.setAttribute(ui_sref,v[1]);
+                        mn.push(ccDom(itemName,b));
+                    }else if(v.indexOf('@')>0){
+                        v=v.split('@');
+                        var b=cLabel(v[0]);
+                        b.setAttribute(app_sref,v[1]);
+                        mn.push(ccDom(itemName,b));
+                    }else{
+                        mn.push(ccDom(itemName,cLabel(v)));
+                    }
+                }else{
+                    mn.push(cDom(divider));
+                }
+                continue;
+            }
+            if(typeof v=='object'){
+                if(v.type=='radio'||v.type=='checkbox'){
+                    mn.push.apply(mn,radioOrCheckbox(v));
+                }else{
+                    i&&mn.push(cDom(divider));
+                    mn.push.apply(mn,o2Menu(v,menuType));
+                }
+                continue;
+            }
+            if(typeof v=='function'){
+                mn.push(ccDom(itemName,cLabel(v.name,v)));
+                continue;
+            }
+        }
+        return mn;
+    }
+    function contextMenu(m) {
+        if(m instanceof Array){
+            return a2Menu(m);
+        }
+        return o2Menu(m);
+    }
+    function menubarMenu(m) {
+        if(m instanceof Array){
+            return a2Menu(m,'dropdown-menu');
+        }
+        return o2Menu(m,'dropdown-menu');
+    }
     CCContext.prototype={
         attachEvent:function () {
             this.template.on({
@@ -77,8 +190,10 @@
         },
         hover:function(e){
             var target=$(e.target);
-            var submenu=target.find('sub-menu');
-            if(target.is('menu-item')&&submenu.length){
+            if(target.is('menu-item>label')){
+                target=target.parents('menu-item');
+                var submenu=target.find('sub-menu');
+                if(!submenu.length){return;}
                 var dc=deRect(this.container);
                 var cp=elementPosition(this.container);
                 var dSub=deRect(submenu);
@@ -102,9 +217,12 @@
         showMenu:function(e,menu){
             e.preventDefault();
             e.stopPropagation();
+            if(!this.container[0].contains(this.template[0])){
+                this.container.append(this.template);
+            }
             this.oe=e2oe(e);
             this.template.html('');
-            this.template.append(this.domMenu(menu)).show();
+            this.template.append(contextMenu(menu)).show();
 
             var dt=deRect(this.template);
             var cp=elementPosition(this.container);
@@ -124,25 +242,6 @@
             this.template.find('sub-menu')
                 .parent('menu-item')
                 .attr('direction','normal');
-        },
-        subMenu:function (menu) {
-            return ccDom('sub-menu',this.domMenu(menu));
-        },
-        domMenu:function (menu) {
-            var mn=[],p,v,subM;
-            for(p in menu){
-                v=menu[p];
-                if(v instanceof Array){
-                    subM=cDom('sub-menu');
-                    v.forEach(i=>subM.appendChild(cDom('menu-item',i)));
-                    mn.push(ccDom('menu-item',cDom('menu-item',p),subM));
-                }else if(typeof v=='function'){
-                    mn.push(cDom('menu-item',cDom('span',p,v),v));
-                }else {
-                    mn.push(ccDom('menu-item',cDom('menu-item',cDom('span',p)),this.subMenu(v)));
-                }
-            }
-            return mn;
         }
     };
     window.CCContext=function (option) {
