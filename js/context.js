@@ -92,7 +92,11 @@
         for(p in o){
             v=o[p];
             if(v instanceof Array){
-                mn.push(ccDom(itemName,cLabel(p),ccDom(menuType||sub_menu,a2Menu(v))));
+                let b=cLabel(p);
+                if(!menuType){
+                    b.setAttribute("af","▶");
+                }
+                mn.push(ccDom(itemName,b,ccDom(menuType||sub_menu,a2Menu(v))));
                 continue;
             }
             if(typeof v=='function'){
@@ -104,11 +108,15 @@
                 continue;
             }
             if(typeof v=='object'){
+                let b=cLabel(p);
+                if(!menuType){
+                    b.setAttribute("af","▶");
+                }
                 if(v.type=='radio'||v.type=='checkbox'){
-                    mn.push(ccDom(itemName,cLabel(p),ccDom(menuType||sub_menu,radioOrCheckbox(v))));
+                    mn.push(ccDom(itemName,b,ccDom(menuType||sub_menu,radioOrCheckbox(v))));
                     continue;
                 }
-                mn.push(ccDom(itemName,cLabel(p),ccDom(menuType||sub_menu,o2Menu(v))));
+                mn.push(ccDom(itemName,b,ccDom(menuType||sub_menu,o2Menu(v))));
                 continue;
             }
         }
