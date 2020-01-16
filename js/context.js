@@ -23,6 +23,11 @@
             'offsetWidth','offsetHeight'
         ]);
     }
+    function getMaxZIndex(container) {
+        let a=[...container[0].children]
+            .map(e=>+getComputedStyle(e).zIndex||0);
+        return Math.max(...a)||a.length;
+    }
     var itemName='menu-item', label='label', span='span',
         input='input', sub_menu='sub-menu', ui_sref='ui-sref',
         app_sref='app-sref', divider='divider',active='active';
@@ -172,6 +177,7 @@
         this.template=$('<context-menu></context-menu>');
         this.attachEvent();
         this.container.append(this.template);
+        this.template.css({"z-index":getMaxZIndex(this.container)});
     };
     CCContext.prototype={
         attachEvent:function () {
@@ -183,7 +189,10 @@
             });
         },
         click:function(e){
-            (e.target.action||(()=>0))(e),this.clearMenu();
+            this.clearMenu();
+            if(this.template[0].contains(e.target)) {
+                (e.target.action||(()=>0))(e);
+            }
         },
         hover:function(e){
             var target=$(e.target);
