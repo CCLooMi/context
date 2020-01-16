@@ -67,7 +67,31 @@
                     (inp.value==o.checked):
                     (o.checked.indexOf(inp.value)>-1);
             }
-            var b=cDom(label,inp,o.action);
+            var b;
+            if(o.action){
+                b=cDom(label,inp,function (e) {
+                    let target=$(e.target);
+                    let targetInput=target.find('input')[0];
+                    let p=target.parent('menu-item').parent();
+                    if(o.type=='radio'){
+                        let oldV=p.find('input[name="'+targetInput.name+'"]:checked').val();
+                        let newV=targetInput.value;
+                        newV!=oldV&&o.action(e,newV,oldV);
+                    }else if(o.type=='checkbox'){
+                        let oldVs=[...p.find('input[name="'+targetInput.name+'"]:checked')
+                            .map((i,v)=>v.value)];
+                        let newVs=[...oldVs];
+                        if(targetInput.checked){
+                            newVs.splice(newVs.indexOf(targetInput.value),1);
+                        }else{
+                            newVs.push(targetInput.value);
+                        }
+                        o.action(e,newVs,oldVs);
+                    }
+                });
+            }else{
+                b=cDom(label,inp);
+            }
             b.appendChild(cDom(span,p));
             mn.push(cDom(itemName,b));
         }
