@@ -28,6 +28,7 @@
             .map(e=>+getComputedStyle(e).zIndex||0);
         return Math.max(...a)||a.length;
     }
+
     var itemName='menu-item', label='label', span='span',
         input='input', sub_menu='sub-menu', ui_sref='ui-sref',
         app_sref='app-sref', divider='divider',active='active';
@@ -86,6 +87,27 @@
         }
         return b;
     }
+    function menuObj2Menu(mo,menuType) {
+        var b;
+        if(typeof mo.action!='string'){
+            b=cLabel(mo.label,mo.action);
+        }else{
+            b=sLabel(mo.label,mo.action);
+        }
+        mo.icon&&b.insertBefore(cDom('i',mo.icon),b.children[0]);
+        mo.af&&b.setAttribute("af",mo.af);
+        if(mo.subMenu){
+            if(mo.subMenu instanceof Array){
+                return ccDom(itemName,b,ccDom(menuType||sub_menu,a2Menu(mo.subMenu)));
+            }else if(typeof mo.subMenu=='Object'){
+                return ccDom(itemName,b,ccDom(menuType||sub_menu,o2Menu(mo.subMenu)));
+            }else{
+                return ccDom(itemName,b,ccDom(menuType||sub_menu,a2Menu([mo.subMenu])));
+            }
+        }else{
+            return cDom(itemName,b);
+        }
+    }
     function o2Menu(o,menuType) {
         var mn=[];
         var p,v;
@@ -93,9 +115,7 @@
             v=o[p];
             if(v instanceof Array){
                 let b=cLabel(p);
-                if(!menuType){
-                    b.setAttribute("af","▶");
-                }
+                b.setAttribute("af","▶");
                 mn.push(ccDom(itemName,b,ccDom(menuType||sub_menu,a2Menu(v))));
                 continue;
             }
@@ -109,14 +129,16 @@
             }
             if(typeof v=='object'){
                 let b=cLabel(p);
-                if(!menuType){
-                    b.setAttribute("af","▶");
-                }
+                b.setAttribute("af","▶");
                 if(v.type=='radio'||v.type=='checkbox'){
                     mn.push(ccDom(itemName,b,ccDom(menuType||sub_menu,radioOrCheckbox(v))));
                     continue;
                 }
-                mn.push(ccDom(itemName,b,ccDom(menuType||sub_menu,o2Menu(v))));
+                if(v.type!='menu'){
+                    mn.push(ccDom(itemName,b,ccDom(menuType||sub_menu,o2Menu(v))));
+                    continue;
+                }
+                mn.push(menuObj2Menu(v,menuType));
                 continue;
             }
         }
@@ -153,9 +175,11 @@
             if(typeof v=='object'){
                 if(v.type=='radio'||v.type=='checkbox'){
                     mn.push.apply(mn,radioOrCheckbox(v));
-                }else{
+                }else if(v.type!='menu'){
                     i&&mn.push(cDom(divider));
                     mn.push.apply(mn,o2Menu(v,menuType));
+                }else{
+                    mn.push(menuObj2Menu(v,menuType));
                 }
                 continue;
             }
@@ -205,8 +229,8 @@
         hover:function(e){
             var target=$(e.target);
             if(target[0].nodeName=='LABEL'&&target.is('menu-item>label')){
-                target=target.parents('menu-item');
-                var submenu=target.find('sub-menu');
+                target=target.parents('menu-item').first();
+                var submenu=target.find('sub-menu').first();
                 if(!submenu.length){return;}
                 var dc=deRect(this.container);
                 var cp=elementPosition(this.container);
@@ -309,8 +333,8 @@
         hover:function(e){
             var target=$(e.target);
             if(target[0].nodeName=='LABEL'&&target.is('menu-item>label')){
-                target=target.parents('menu-item');
-                var submenu=target.find('dropdown-menu,sub-menu');
+                target=target.parents('menu-item').first();
+                var submenu=target.find('dropdown-menu,sub-menu').first();
                 if(!submenu.length){return;}
                 var dc=deRect(this.container);
                 var cp=elementPosition(this.container);
@@ -319,10 +343,9 @@
                 if((dSub.offsetWidth+(subP.left-cp.left))>dc.offsetWidth){
                     submenu.attr('direction','left');
                 }
-                if((dSub.offsetHeight+(subP.top-cp.top))>dc.offsetHeight){
-                    submenu.parent('menu-item').attr('direction','reverse');
-                }
-
+                // if((dSub.offsetHeight+(subP.top-cp.top))>dc.offsetHeight){
+                //     submenu.parent('menu-item').attr('direction','reverse');
+                // }
                 let ats=this.container.find('menu-item.'+active);
                 if(target.is('menu-group.'+active+'>menu-item')){
                     ats.removeClass(active);
