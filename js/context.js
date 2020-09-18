@@ -247,7 +247,11 @@
         click:function(e){
             this.clearMenu();
             if(this.template[0].contains(e.target)) {
-                (e.target.action||(()=>0))(e);
+                if(typeof e.target.action=='function'){
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.target.action(e);
+                }
             }
         },
         hover:function(e){
