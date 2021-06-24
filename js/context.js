@@ -26,7 +26,7 @@
     function getMaxZIndex(container) {
         let a=[...container[0].children]
             .map(e=>+getComputedStyle(e).zIndex||0);
-        return Math.max(...a)||a.length;
+        return (Math.max(...a)||a.length)+1;
     }
 
     var itemName='menu-item', label='label', span='span',
@@ -247,7 +247,11 @@
         click:function(e){
             this.clearMenu();
             if(this.template[0].contains(e.target)) {
-                (e.target.action||(()=>0))(e);
+                if(typeof e.target.action=='function'){
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.target.action(e);
+                }
             }
         },
         hover:function(e){
