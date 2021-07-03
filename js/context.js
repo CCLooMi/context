@@ -24,9 +24,10 @@
         ]);
     }
     function getMaxZIndex(container) {
-        let a=[...container[0].children]
+        container=container[0]||container;
+        let a=[...container.children]
             .map(e=>+getComputedStyle(e).zIndex||0);
-        return (Math.max(...a)||a.length)+1;
+        return ((Math.max(...a)||a.length)+1)*10;
     }
 
     var itemName='menu-item', label='label', span='span',
@@ -233,16 +234,22 @@
         this.template=$('<context-menu></context-menu>');
         this.attachEvent();
         this.container.append(this.template);
-        this.template.css({"z-index":getMaxZIndex(this.container)});
     };
     CCContext.prototype={
         attachEvent:function () {
             this.template.on({
-                mouseover:$.proxy(this.hover,this)
+                mouseover:$.proxy(this.hover,this),
+                contextmenu:$.proxy(this.placeMenu,this)
             });
-            this.container.on({
+            $(document).on({
                 click:$.proxy(this.click,this)
             });
+            let $this=this;
+            this.eventDispose=function () {
+                $this.template.unbind('mouseover',$this.hover);
+                $this.template.unbind('contextmenu',$this.placeMenu);
+                $(document).unbind('click',$this.click);
+            };
         },
         click:function(e){
             this.clearMenu();
@@ -278,15 +285,10 @@
         clearAction:function(){
             this.template
                 .find(label)
-                .each((i,b)=>{
-                    b.action=undefined;
-                    delete b.action;
-                });
+                .each((i,b)=>(delete b.action));
         },
         destroy:function(){
-            //TODO 有待优化，需要移除label绑定的action
-            this.template.unbind('mouseover');
-            this.container.unbind('click');
+            this.eventDispose();
             this.clearAction();
             this.template.remove();
         },
@@ -296,11 +298,14 @@
             if(!this.container[0].contains(this.template[0])){
                 this.container.append(this.template);
             }
+            this.template.css({"z-index":getMaxZIndex(e.target)});
             this.oe=e2oe(e);
             this.clearAction();
             this.template.html('');
             this.template.append(contextMenu(menu)).show();
-
+            this.placeMenu(e);
+        },
+        placeMenu:function (e) {
             var dt=deRect(this.template);
             var cp=elementPosition(this.container);
             var dc=deRect(this.container);
@@ -334,6 +339,11 @@
             this.container.on({
                 click:$.proxy(this.click,this)
             });
+            let $this=this;
+            this.eventDispose=function () {
+                $this.container.unbind('mouseover',$this.hover);
+                $this.container.unbind('click',$this.click);
+            };
         },
         click:function(e){
             let target=$(e.target);
@@ -391,14 +401,10 @@
         clearAction:function(){
             this.container
                 .find(label)
-                .each((i,b)=>{
-                    b.action=undefined;
-                    delete b.action;
-                });
+                .each((i,b)=>(delete b.action));
         },
         destroy:function(){
-            this.container.unbind('mouseover');
-            this.container.unbind('click');
+            this.eventDispose();
             this.clearAction();
         },
         showMenu:function(menu){
